@@ -1,6 +1,7 @@
 const PORT = 3000;
 const http = require("http");
 const fs = require("fs");
+const { pipeline } = require('stream')
 fs.mkdirSync('output', { recursive: true })
 
 let counter = 0
@@ -9,9 +10,10 @@ const server = http.createServer((req, res) => {
     if (req.url === "/upload") {
         console.log("receiving file", counter)
         const output = fs.createWriteStream(`output/upload-${counter++}.txt`);
-        req.pipe(output);
-        res.writeHead(201, { "Content-Type": "text/plain" });
-        res.end();
+        pipeline(req, output, (err) => {
+            res.writeHead(201, { "Content-Type": "text/plain" });
+            res.end();
+        });
     } else {
         res.writeHead(404);
         res.end();
